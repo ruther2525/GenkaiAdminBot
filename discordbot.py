@@ -4,14 +4,13 @@ import os
 import traceback
 import asyncio
 import psycopg2
-from psycopg2.extras import DictCursor
 
 conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
-with conn.cursor(cursor_factory=DictCursor) as cur:
+with conn.cursor() as cur:
     cur.excute('SELECT Prefix FROM BotDetail;')
-    rows = cur.fetchall()
-    print(rows)
-    prefix = str(rows['prefix'])
+    row = cur.fetchone()
+    print(row)
+    prefix = str(row.prefix)
 
 bot = commands.Bot(command_prefix=prefix)
 token = os.environ['DiscordBotToken']
