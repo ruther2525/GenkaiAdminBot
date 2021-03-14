@@ -5,10 +5,10 @@ import traceback
 import asyncio
 import psycopg2
 
-conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
+conn = psycopg2.connect(os.environ['DATABASE_URL'])
 with conn.cursor() as cur:
     cur.excute('SELECT Prefix FROM BotDetail;')
-    row = cur.fetchone()
+    row = cur.fetchall()
     print(row)
     prefix = str(row.prefix)
 
