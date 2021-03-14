@@ -10,7 +10,7 @@ class reaction_roles(commands.Cog):
         self.bot = bot
         self.client = discord.Client()
 
-        conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
         with conn.cursor() as cur:
             cur.excute('SELECT * FROM R_R_List;')
             rows = cur.fetchall()
@@ -44,7 +44,7 @@ class reaction_roles(commands.Cog):
                     
                     server_id = ctx.message.guild.id
 
-                    async_conn = await asyncpg.connect(os.environ['DATABASE_URL'], ssl='require')
+                    async_conn = await asyncpg.connect(os.environ['DATABASE_URL'])
                     await async_conn.excute(f'INSERT INTO R_R_List(message_id, is_true, server_id, emoji, role) VALUES ({message_id}, 1, {server_id}, {str(reaction)}, {delete_role})')
                     await async_conn.close()
                     embed = discord.Embed(title="設定内容")
