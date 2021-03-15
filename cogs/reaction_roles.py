@@ -34,7 +34,18 @@ class reaction_roles(commands.Cog):
             if self.r_r_listen_list is not None:
                 print(self.r_r_listen_list)
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        print(member)
+        for role in self.r_r_listen_list:
+            print(role)
+            if member.guild.id == int(role['server_id']):
+                getrole = member.guild.get_role(int(role['role']))
+                if getrole is not None:
+                    await member.add_roles(getrole)
+
     @commands.command()
+    @commands.has_permissions(administrator=True)
     async def rrdel(self, ctx, operation, message_id, delete_role: discord.Role):
         if operation == 'set':
             embed = discord.Embed(title='このメッセージにリアクションロールで使用したい絵文字を１分以内にリアクションしてください。サーバー固有絵文字はやばいかも。', color=discord.Colour.green())
@@ -88,6 +99,15 @@ class reaction_roles(commands.Cog):
 
                 except discord.Forbidden:
                     await ctx.send('エラーが発生しました。権限を確認してください')
+
+    @rrdel.error
+    async def rrdel_error(self, error, ctx):
+        if isinstance(error, commands.CheckFailure):
+            embed = discord.Embed(title='エラー', description='管理権限が必要です')
+            error_msg = await ctx.send(embed=embed)
+            await asyncio.sleep(10)
+            await error_msg.delete()
+        return
     
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):

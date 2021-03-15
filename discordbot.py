@@ -18,7 +18,8 @@ with getConnection() as conn:
         prefix = str(row[0])
         print(prefix)
 
-bot = commands.Bot(command_prefix=prefix)
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=prefix, intents=intents)
 token = os.environ['DiscordBotToken']
 
 
