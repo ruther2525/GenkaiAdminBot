@@ -5,54 +5,85 @@ import asyncio
 import psycopg2
 import asyncpg
 
+client = discord.Client()
+
 class reaction_roles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.client = discord.Client()
 
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         with conn.cursor() as cur:
-            cur.excute('SELECT * FROM R_R_List;')
+            cur.execute('SELECT * FROM R_R_List;')
             rows = cur.fetchall()
             print(rows)
 
             self.r_r_listen_list = []
             for now_row in rows:
-                if now_row['is_true'] == 1:
-                    now_row['is_true'] = True
+                print(now_row)
+                a = {}
+                if now_row[1] == 1:
+                    a['is_true'] = True
                 else:
-                    now_row['is_true'] = False
-                self.r_r_listen_list.append(now_row)
+                    a['is_true'] = False
+                a['message_id'] = now_row[0]
+                a['server_id'] = now_row[2]
+                a['emoji'] = now_row[3]
+                a['role'] = int(now_row[4])
+                self.r_r_listen_list.append(a)
+            
+            if self.r_r_listen_list is not None:
+                print(self.r_r_listen_list)
 
     @commands.command()
-    async def rrdel(self, ctx, operation , message_id, delete_role):
+    async def rrdel(self, ctx, operation, message_id, delete_role: discord.Role):
         if operation == 'set':
-            embed = discord.Embed(color=discord.Colour.green())
-            embed.add_field(name='このメッセージにリアクションロールで使用したい絵文字を１分以内にリアクションしてください。')
-            await ctx.send(embed=embed)
+            embed = discord.Embed(title='このメッセージにリアクションロールで使用したい絵文字を１分以内にリアクションしてください。サーバー固有絵文字はやばいかも。', color=discord.Colour.green())
+            reaction_message = await ctx.send(embed=embed)
             
             def check(reaction, user):
-                return user == ctx.author and reaction.message.id == ctx.message.id
+                print('Check function runned')
+                print('  Reaction: ' + repr(reaction))
+                print('  User: ' + repr(user))
+                print('  Return: ' + repr(user == ctx.author and reaction.message.id == reaction_message.id))
+                return user == ctx.author and reaction.message.id == reaction_message.id
 
             try:
-                reaction, user = await self.client.wait_for('reaction_add', timeout=60.0, chech=check)
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
             except asyncio.TimeoutError:
+                await reaction_message.delete()
+                await ctx.send('タイムアウトしました')
                 pass
             else:
                 try:
-                    await ctx.message.add_reaction(reaction.emoji)
-                    
                     server_id = ctx.message.guild.id
 
-                    async_conn = await asyncpg.connect(os.environ['DATABASE_URL'])
-                    await async_conn.excute(f'INSERT INTO R_R_List(message_id, is_true, server_id, emoji, role) VALUES ({message_id}, 1, {server_id}, {str(reaction)}, {delete_role})')
-                    await async_conn.close()
+                    to_listen_msg = await ctx.fetch_message(message_id)
+                    print(to_listen_msg)
+                    if to_listen_msg is not None:
+                        await to_listen_msg.add_reaction(reaction.emoji)
+                    
+
                     embed = discord.Embed(title="設定内容")
                     embed.add_field(name="**メッセージid**", value=message_id)
                     embed.add_field(name="**リアクションの絵文字**", value=str(reaction.emoji))
                     embed.add_field(name="**リアクションにより削除するロール**", value=str(delete_role))
                     
+                    print(delete_role)
                     await ctx.send(embed=embed)
+
+                    async_conn = await asyncpg.connect(os.environ['DATABASE_URL'])
+                    sql = f"INSERT INTO R_R_List(message_id, is_true, server_id, emoji, role) VALUES ('{message_id}', 1, '{server_id}', '{str(reaction.emoji)}', '{delete_role.id}');"
+                    print(sql)
+                    await async_conn.execute(sql)
+                    await async_conn.close()
+                    
+                    a = {}
+                    a['message_id'] = message_id
+                    a['server_id'] = server_id
+                    a['emoji'] = str(reaction.emoji)
+                    a['role'] = int(delete_role.id)
+                    self.r_r_listen_list.append(a)
+                    
                     await ctx.send('該当メッセージにリアクションを設定し、データベースに保存しました。これでできるはずです。たぶん。')
 
                 except discord.Forbidden:
@@ -60,15 +91,20 @@ class reaction_roles(commands.Cog):
     
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        print('on_raw_reaction_add fired')
+        print('  self: ' + repr(self))
+        print('  payload: ' + repr(payload))
         for unko in self.r_r_listen_list:
-            if payload.message_id == unko.message_id and str(payload.emoji) == str(unko.emoji):
-                guild = self.client.get_guild(payload.guild_id)
+            print('unko: ' + repr(unko))
+            print('\n' + repr(payload.message_id == unko['message_id']))
+            print('\n' + repr(str(payload.emoji) == str(unko['emoji'])))
+            if payload.message_id == unko['message_id'] and str(payload.emoji) == str(unko['emoji']):
+                guild = self.bot.get_guild(int(payload.guild_id))
+                print(guild)
                 if guild is not None:
-                    a = unko.role.replace('<', '')
-                    a = a.replace('@', '')
-                    a = a.replace('>', '')
 
-                    delete_role = guild.get_role(int(a))
+                    delete_role = guild.get_role(int(unko['role']))
+                    print(delete_role)
                     if delete_role is not None:
                         await payload.member.remove_roles(delete_role)
                         return

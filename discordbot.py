@@ -5,18 +5,25 @@ import traceback
 import asyncio
 import psycopg2
 
-conn = psycopg2.connect(os.environ['DATABASE_URL'])
-with conn.cursor() as cur:
-    cur.excute('SELECT Prefix FROM BotDetail;')
-    row = cur.fetchall()
-    print(row)
-    prefix = str(row.prefix)
+def getConnection():
+    return psycopg2.connect(os.environ['DATABASE_URL'])
+
+with getConnection() as conn:
+    print(conn)
+    with conn.cursor() as cur:
+        print(cur)
+        cur.execute('SELECT Prefix FROM BotDetail;')
+        row = cur.fetchone()
+        print(row)
+        prefix = str(row[0])
+        print(prefix)
 
 bot = commands.Bot(command_prefix=prefix)
 token = os.environ['DiscordBotToken']
 
 
 InExtensions = [
+    'about',
     'reaction_roles'
 ]
 
@@ -27,13 +34,14 @@ async def run():
     try:
         await bot.start(token)
     except KeyboardInterrupt:
+        print('logout...')
         await bot.logout()
 
 
-class GenkaiMainClass(commands.bot):
+class GenkaiMainClass(commands.Bot):
 
     def __init__(self):
-        super.__init__(command_prefix=commands.when_mentioned_or(prefix), loop=loop)
+        super().__init__(command_prefix=commands.when_mentioned_or(prefix), loop=loop)
     
     async def on_ready(self):
         for extension in InExtensions:
@@ -43,9 +51,14 @@ class GenkaiMainClass(commands.bot):
                 self.reload_extension(f'cogs.{extension}')
         await self.change_presence(activity=discord.Game(name=f'{prefix}help'))
     
-    async def on_command_error(self, ctx, error1):
-        if isinstance(error1, (commands.CommandNotFound, commands.CommandInvokeError)):
-            return
+    #async def on_command_error(self, ctx, error1):
+    #    if isinstance(error1, (commands.CommandNotFound, commands.CommandInvokeError)):
+    #        embed = discord.Embed()
+    #        embed.add_field(name='エラー(このメッセージは自動的に削除されます)', value=repr(error1))
+    #        a = await ctx.send(embed=embed)
+    #        await asyncio.sleep(10)
+    #        await a.delete()
+    #        return
 
 
 if __name__ == '__main__':
