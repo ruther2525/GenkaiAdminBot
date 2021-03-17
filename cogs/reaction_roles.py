@@ -56,41 +56,41 @@ class reaction_roles(commands.Cog):
                 await reaction_message.delete()
                 await ctx.send('タイムアウトしました')
                 pass
-            else:
-                try:
-                    server_id = ctx.message.guild.id
+        
+            try:
+                server_id = ctx.message.guild.id
 
-                    to_listen_msg = await ctx.fetch_message(message_id)
-                    print(to_listen_msg)
-                    if to_listen_msg is not None:
-                        await to_listen_msg.add_reaction(reaction.emoji)
-                    
+                to_listen_msg = await ctx.fetch_message(message_id)
+                print(to_listen_msg)
+                if to_listen_msg is not None:
+                    await to_listen_msg.add_reaction(reaction.emoji)
+                
 
-                    embed = discord.Embed(title="設定内容")
-                    embed.add_field(name="**メッセージid**", value=message_id)
-                    embed.add_field(name="**リアクションの絵文字**", value=str(reaction.emoji))
-                    embed.add_field(name="**リアクションにより削除するロール**", value=str(delete_role))
-                    
-                    print(delete_role)
-                    await ctx.send(embed=embed)
+                embed = discord.Embed(title="設定内容")
+                embed.add_field(name="**メッセージid**", value=message_id)
+                embed.add_field(name="**リアクションの絵文字**", value=str(reaction.emoji))
+                embed.add_field(name="**リアクションにより削除するロール**", value=str(delete_role))
+                
+                print(delete_role)
+                await ctx.send(embed=embed)
 
-                    async_conn = await asyncpg.connect(os.environ['DATABASE_URL'])
-                    sql = f"INSERT INTO R_R_List(message_id, is_true, server_id, emoji, role) VALUES ('{message_id}', 1, '{server_id}', '{str(reaction.emoji)}', '{delete_role.id}');"
-                    print(sql)
-                    await async_conn.execute(sql)
-                    await async_conn.close()
-                    
-                    a = {}
-                    a['message_id'] = message_id
-                    a['server_id'] = server_id
-                    a['emoji'] = str(reaction.emoji)
-                    a['role'] = int(delete_role.id)
-                    self.r_r_listen_list.append(a)
-                    
-                    await ctx.send('該当メッセージにリアクションを設定し、データベースに保存しました。これでできるはずです。たぶん。')
+                async_conn = await asyncpg.connect(os.environ['DATABASE_URL'])
+                sql = f"INSERT INTO R_R_List(message_id, is_true, server_id, emoji, role) VALUES ('{message_id}', 1, '{server_id}', '{str(reaction.emoji)}', '{delete_role.id}');"
+                print(sql)
+                await async_conn.execute(sql)
+                await async_conn.close()
+                
+                a = {}
+                a['message_id'] = message_id
+                a['server_id'] = server_id
+                a['emoji'] = str(reaction.emoji)
+                a['role'] = int(delete_role.id)
+                self.r_r_listen_list.append(a)
+                
+                await ctx.send('該当メッセージにリアクションを設定し、データベースに保存しました。これでできるはずです。たぶん。')
 
-                except discord.Forbidden:
-                    await ctx.send('エラーが発生しました。権限を確認してください')
+            except discord.Forbidden:
+                await ctx.send('エラーが発生しました。権限を確認してください')
 
     @rrdel.error
     async def rrdel_error(self, error, ctx):
