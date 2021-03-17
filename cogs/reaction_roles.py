@@ -10,6 +10,7 @@ client = discord.Client()
 class reaction_roles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        print(bot)
 
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         with conn.cursor() as cur:
@@ -34,16 +35,6 @@ class reaction_roles(commands.Cog):
             if self.r_r_listen_list is not None:
                 print(self.r_r_listen_list)
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        print(member)
-        for role in self.r_r_listen_list:
-            print(role)
-            if member.guild.id == int(role['server_id']):
-                getrole = member.guild.get_role(int(role['role']))
-                if getrole is not None:
-                    await member.add_roles(getrole)
-
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def rrdel(self, ctx, operation, message_id, delete_role: discord.Role):
@@ -60,6 +51,7 @@ class reaction_roles(commands.Cog):
 
             try:
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
+                print('a')
             except asyncio.TimeoutError:
                 await reaction_message.delete()
                 await ctx.send('タイムアウトしました')
@@ -128,6 +120,16 @@ class reaction_roles(commands.Cog):
                     if delete_role is not None:
                         await payload.member.remove_roles(delete_role)
                         return
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        print(member)
+        for role in self.r_r_listen_list:
+            print(role)
+            if member.guild.id == int(role['server_id']):
+                getrole = member.guild.get_role(int(role['role']))
+                if getrole is not None:
+                    await member.add_roles(getrole)
 
 
 def setup(bot):
