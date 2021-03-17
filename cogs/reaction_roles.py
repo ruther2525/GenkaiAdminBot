@@ -59,8 +59,18 @@ class reaction_roles(commands.Cog):
         
             try:
                 server_id = ctx.message.guild.id
+                guild_obj = self.bot.get_guild(server_id)
+                for channel in guild_obj.text_channels:
+                    to_listen_msg = await channel.fetch_message(message_id)
+                    if to_listen_msg is not None:
+                        break
+                else:
+                    embed = discord.Embed(title='エラー', description='指定されたメッセージidからメッセージを検索できませんでした。')
+                    u = await ctx.send(embed=embed)
+                    await asyncio.sleep(10)
+                    await u.delete()
+                    return
 
-                to_listen_msg = await ctx.fetch_message(message_id)
                 print(to_listen_msg)
                 if to_listen_msg is not None:
                     await to_listen_msg.add_reaction(reaction.emoji)
