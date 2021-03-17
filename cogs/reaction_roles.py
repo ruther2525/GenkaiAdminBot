@@ -109,6 +109,11 @@ class reaction_roles(commands.Cog):
             error_msg = await ctx.send(embed=embed)
             await asyncio.sleep(10)
             await error_msg.delete()
+        else:
+            embed = discord.Embed(title='エラー', description=repr(error))
+            error_msg = await ctx.send(embed=embed)
+            await asyncio.sleep(10)
+            await error_msg.delete()
         return
     
     @commands.Cog.listener()
