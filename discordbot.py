@@ -18,8 +18,9 @@ with getConnection() as conn:
         prefix = str(row[0])
         print(prefix)
 
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=prefix, intents=intents)
+intents = discord.Intents.default()
+intents.members = True
+print(intents)
 token = os.environ['DiscordBotToken']
 
 
@@ -42,7 +43,7 @@ async def run():
 class GenkaiMainClass(commands.Bot):
 
     def __init__(self):
-        super().__init__(command_prefix=commands.when_mentioned_or(prefix), loop=loop)
+        super().__init__(command_prefix=commands.when_mentioned_or(prefix), loop=loop, intents=intents)
     
     async def on_ready(self):
         for extension in InExtensions:
