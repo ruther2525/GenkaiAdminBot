@@ -105,7 +105,7 @@ class reaction_roles(commands.Cog):
                 await ctx.send('エラーが発生しました。権限を確認してください')
 
     @rrdel.error
-    async def rrdel_error(self, error, ctx):
+    async def rrdel_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             embed = discord.Embed(title='エラー', description='管理権限が必要です')
             error_msg = await ctx.send(embed=embed)
