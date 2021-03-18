@@ -63,6 +63,7 @@ class reaction_roles(commands.Cog):
                 for channel in guild_obj.text_channels:
                     try:
                         to_listen_msg = await channel.fetch_message(message_id)
+                        break
                     except discord.NotFound as error:
                         print(error)
                 else:
