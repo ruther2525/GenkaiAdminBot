@@ -44,7 +44,7 @@ class GenkaiMainClass(commands.Bot):
 
     def __init__(self):
         super().__init__(command_prefix=commands.when_mentioned_or(prefix), loop=loop, intents=intents)
-    
+
     async def on_ready(self):
         for extension in InExtensions:
             try:
@@ -52,15 +52,7 @@ class GenkaiMainClass(commands.Bot):
             except commands.ExtensionAlreadyLoaded:
                 self.reload_extension(f'cogs.{extension}')
         await self.change_presence(activity=discord.Game(name=f'{prefix}help'))
-    
-    #async def on_command_error(self, ctx, error1):
-    #    if isinstance(error1, (commands.CommandNotFound, commands.CommandInvokeError)):
-    #        embed = discord.Embed()
-    #        embed.add_field(name='エラー(このメッセージは自動的に削除されます)', value=repr(error1))
-    #        a = await ctx.send(embed=embed)
-    #        await asyncio.sleep(10)
-    #        await a.delete()
-    #        return
+
 
 
 if __name__ == '__main__':
