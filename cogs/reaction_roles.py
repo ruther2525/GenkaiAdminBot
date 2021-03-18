@@ -61,9 +61,10 @@ class reaction_roles(commands.Cog):
                 server_id = ctx.message.guild.id
                 guild_obj = self.bot.get_guild(server_id)
                 for channel in guild_obj.text_channels:
-                    to_listen_msg = await channel.fetch_message(message_id)
-                    if to_listen_msg is not None:
-                        break
+                    try:
+                        to_listen_msg = await channel.fetch_message(message_id)
+                    except discord.NotFound as error:
+                        print(error)
                 else:
                     embed = discord.Embed(title='エラー', description='指定されたメッセージidからメッセージを検索できませんでした。')
                     u = await ctx.send(embed=embed)
