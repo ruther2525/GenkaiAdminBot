@@ -26,7 +26,8 @@ token = os.environ['DiscordBotToken']
 
 InExtensions = [
     'about',
-    'reaction_roles'
+    'reaction_roles',
+    'kuromina_notify'
 ]
 
 loop = asyncio.new_event_loop()
