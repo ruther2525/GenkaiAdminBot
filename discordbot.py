@@ -9,24 +9,25 @@ def getConnection():
     return psycopg2.connect(os.environ['DATABASE_URL'])
 
 with getConnection() as conn:
-    print(conn)
+
     with conn.cursor() as cur:
-        print(cur)
+
         cur.execute('SELECT Prefix FROM BotDetail;')
         row = cur.fetchone()
-        print(row)
+
         prefix = str(row[0])
-        print(prefix)
+
 
 intents = discord.Intents.default()
 intents.members = True
-print(intents)
+
 token = os.environ['DiscordBotToken']
 
 
 InExtensions = [
     'about',
-    'reaction_roles'
+    'reaction_roles',
+    'kuromina_notify'
 ]
 
 loop = asyncio.new_event_loop()

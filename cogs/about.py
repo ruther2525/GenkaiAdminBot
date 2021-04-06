@@ -5,7 +5,8 @@ import asyncio
 
 InExtensions = [
     'about',
-    'reaction_roles'
+    'reaction_roles',
+    'kuromina_notify'
 ]
 
 class About(commands.Cog):
